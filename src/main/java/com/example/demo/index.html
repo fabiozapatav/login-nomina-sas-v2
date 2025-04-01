@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nomina Empresaria</title>
+    <style>
+        body {
+            background-image: url('img/1.jpg'); /* Reemplaza 'fondo.jpg' con la ruta de tu imagen */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 40px auto;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 32px;
+            margin-bottom: 60px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 10px;
+        }
+        .header-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .search-container {
+            text-align: left;
+            margin-bottom: 60px;
+            margin-left: 10%;
+            margin-top: 0;
+        }
+        input {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Botón de Cerrar Sesión -->
+<button class="logout-button" onclick="cerrarSesion()">Cerrar Sesión</button>
+
+<div class="header-container">
+    <h1>Nomina Empresarial</h1>
+</div>
+
+<!-- Contenedor de Búsqueda -->
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula...">
+    <button onclick="buscarUsuario()">Buscar</button>
+</div>
+
+<!-- Tabla de Usuarios -->
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Salario</th>
+        <th>Área</th>
+        <th>Cargo</th>
+        <th>Cédula</th>
+        <th>Prima</th>
+    </tr>
+    </thead>
+    <tbody id="userTableBody">
+    <!-- Aquí se insertarán los usuarios -->
+    </tbody>
+</table>
+
+<script>
+    let usersData = []; // Variable para almacenar los usuarios
+
+    // Cargar todos los usuarios al iniciar la página
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("http://localhost:8080/api/users")
+            .then(response => response.json())
+            .then(data => {
+                usersData = data; // Guardar datos en la variable global
+                mostrarUsuarios(usersData);
+            })
+            .catch(error => console.error("Error al cargar los usuarios:", error));
+    });
+
+    // Función para mostrar usuarios en la tabla
+    function mostrarUsuarios(users) {
+        let tableBody = document.getElementById("userTableBody");
+        tableBody.innerHTML = ""; // Limpiar la tabla
+
+        users.forEach(user => {
+            let prima = user.salary / 2; // Calcula la prima
+
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.salary}</td>
+                <td>${user.area}</td>
+                <td>${user.cargo}</td>
+                <td>${user.cedula}</td>
+                <td>${prima.toFixed(2)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Función para eliminar tildes y normalizar texto
+    function normalizarTexto(texto) {
+        return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+    }
+
+    // Función para buscar un usuario por nombre o cédula
+    function buscarUsuario() {
+        let searchTerm = normalizarTexto(document.getElementById("searchInput").value);
+
+        let filteredUsers = usersData.filter(user =>
+            normalizarTexto(user.name).includes(searchTerm) ||
+            normalizarTexto(user.cedula).includes(searchTerm)
+        );
+
+        mostrarUsuarios(filteredUsers);
+    }
+
+    // Función para cerrar sesión
+    function cerrarSesion() {
+        window.location.href = "login.html"; // Redirige a la página de inicio de sesión
+    }
+</script>
+
+</body>
+</html>
